@@ -1,9 +1,21 @@
+const http = require('http')
+const https = require('https')
+
 const config = require('config')
 const fetch = require('node-fetch')
 
 const Service = require('./service')
 
 const clustersConfig = config.get('clusters')
+
+const createAgent = (endpoint) => {
+  const url = new URL(endpoint)
+  if (url.protocol === 'http:') {
+    return new http.Agent({ keepAlive: true })
+  } else if (url.protocol === 'https:') {
+    return new https.Agent({ keepAlive: true })
+  }
+}
 
 /**
  * @typedef {Object} State
@@ -23,6 +35,8 @@ class Cluster extends Service {
     this.id = id
     this.config = clustersConfig[id]
     context.assert(this.config != null, 404, 'Cluster is not found')
+
+    this.agent = createAgent(this.config.restfulapi)
   }
 
   /**
@@ -361,7 +375,7 @@ class Cluster extends Service {
     const begin = Date.now()
     this.context.log.info({ url, init }, 'Cluster fetch request')
     try {
-      const response = await fetch(url, init)
+      const response = await fetch(url, Object.assign({ agent: this.agent }, init))
       const duration = Date.now() - begin
       this.context.log.info({ url, init, status: response.status, duration }, 'Cluster fetch response')
       return response
