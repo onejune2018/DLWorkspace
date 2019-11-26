@@ -1,6 +1,5 @@
 sign: DashboardSign
 
-winbind: http://winbind
 masterToken: DashboardMasterToken
 AddGroupLink: http://add-group/
 WikiLink: http://wiki/
