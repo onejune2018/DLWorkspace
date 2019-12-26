@@ -13,6 +13,7 @@ class Cluster extends ClusterV1 {
   /**
    * @param {string} teamId
    * @param {boolean} all
+   * @param {number} limit
    * @return {Promise<Array>}
    */
   async getJobs (teamId, all, limit) {
@@ -34,6 +35,23 @@ class Cluster extends ClusterV1 {
     )
     this.context.log.info('Got %d jobs from %s', jobs.length, this.id)
     return jobs
+  }
+
+  /**
+   * @param {string} jobId
+   * @return {Promise}
+   */
+  async getJob (jobId) {
+    const { user } = this.context.state
+    const params = new URLSearchParams({
+      userName: user.email,
+      jobId
+    })
+    const response = await this.fetch('/GetJobDetail?' + params)
+    this.context.assert(response.ok, 502)
+    const job = await response.json()
+    this.context.log.debug('Got job %s', job['jobName'])
+    return job
   }
 }
 
